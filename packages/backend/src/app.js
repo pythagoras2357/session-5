@@ -9,6 +9,8 @@ app.use(cors());
 app.use(express.json());
 
 // In-memory data store for TODOs
+// Note: This implementation uses in-memory storage for simplicity
+// In production, use a persistent database (PostgreSQL, MongoDB, etc.)
 let todos = [];
 
 // ID counter for generating unique IDs
