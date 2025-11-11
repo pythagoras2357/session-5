@@ -24,16 +24,18 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import './App.css';
 
-// INTENTIONAL ISSUE: API_URL should use environment variable or relative URL
-const API_URL = 'http://localhost:3001/api/todos';
+// Use relative URL for API (works in dev and production)
+const API_URL = '/api/todos';
 
 // React Query hook for fetching todos
 const useTodos = () => {
   return useQuery({
     queryKey: ['todos'],
-    // INTENTIONAL ISSUE: Missing error handling in query
     queryFn: async () => {
       const response = await fetch(API_URL);
+      if (!response.ok) {
+        throw new Error('Failed to fetch todos');
+      }
       const data = await response.json();
       return data;
     },
@@ -76,12 +78,16 @@ function App() {
     },
   });
 
-  // INTENTIONAL ISSUE: Delete mutation not implemented
+  // Mutation for deleting a todo
   const deleteTodoMutation = useMutation({
     mutationFn: async (id) => {
-      // TODO: Implement delete functionality
-      console.log('Delete todo:', id);
-      // Missing: await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+      const response = await fetch(`${API_URL}/${id}`, { 
+        method: 'DELETE' 
+      });
+      if (!response.ok) {
+        throw new Error('Failed to delete todo');
+      }
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['todos'] });
@@ -166,11 +172,20 @@ function App() {
           </Box>
         )}
 
-        {/* INTENTIONAL ISSUE: No empty state message when todos.length === 0 */}
+        {!isLoading && todos.length === 0 && (
+          <Card>
+            <CardContent>
+              <Typography variant="body1" color="text.secondary" align="center">
+                No todos yet! Add one above to get started.
+              </Typography>
+            </CardContent>
+          </Card>
+        )}
 
-        <Card>
-          <List sx={{ p: 0 }}>
-            {todos.map((todo, index) => (
+        {!isLoading && todos.length > 0 && (
+          <Card>
+            <List sx={{ p: 0 }}>
+              {todos.map((todo, index) => (
               <ListItem
                 key={todo.id}
                 sx={{
@@ -199,6 +214,7 @@ function App() {
                   <IconButton
                     size="small"
                     color="primary"
+                    aria-label="edit todo"
                     onClick={() => console.log('Edit not implemented')}
                   >
                     <EditIcon />
@@ -206,6 +222,7 @@ function App() {
                   <IconButton
                     size="small"
                     color="error"
+                    aria-label="delete todo"
                     onClick={() => handleDeleteTodo(todo.id)}
                   >
                     <DeleteIcon />
@@ -215,11 +232,18 @@ function App() {
             ))}
           </List>
         </Card>
+        )}
 
-        {/* INTENTIONAL ISSUE: Stats always show 0 instead of calculating from todos */}
+        {/* Stats: Calculate from todos array */}
         <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center', gap: 2 }}>
-          <Chip label={`${0} items left`} color="primary" />
-          <Chip label={`${0} completed`} color="success" />
+          <Chip 
+            label={`${todos.filter(t => !t.completed).length} items left`} 
+            color="primary" 
+          />
+          <Chip 
+            label={`${todos.filter(t => t.completed).length} completed`} 
+            color="success" 
+          />
         </Box>
       </Container>
     </Box>
