@@ -1,0 +1,6 @@
+# Ignore all files in scratch/ directory
+# This directory is for active session notes that should NOT be committed
+*
+
+# Don't ignore this .gitignore file itself
+!.gitignore
